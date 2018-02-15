@@ -34,44 +34,42 @@ def profile_scraper(soup, user_id):
     error_flag = False
     profile_soup = soup.find("div", {"class": "profile-heading profile section"})
 
+    name_h2 = profile_soup.find("h2", {"class": "h1"})
+    name = name_h2.get_text().encode('utf8')
+
     try:
-        name_h2 = profile_soup.find("h2", {"class": "h1"})
-        name = name_h2.get_text().encode('utf8')
-
-        try:
-            athlete_title = profile_soup.find("div", {"class": "athlete-title"}).get_text()
-            athlete_title = re.sub(r"^\W+|\W+$", "", athlete_title).encode('utf8')
-        except AttributeError:
-            athlete_title = "null"
-
-        try:
-            title_date = name_h2['title']
-            title_date = re.sub(r"Member Since: ", "", title_date).encode('utf8')
-        except AttributeError:
-            title_date = "null"
-
-        try:
-            location = profile_soup.find("div", {"class": "location"}).get_text()
-            location = re.sub(r"^\W+|\W+$", "", location).encode('utf8')
-        except AttributeError:
-            location = "null"
-
-        # try:
-        #     description = profile_soup.find("div", {"class": "description-content"}).get_text()
-        #     # May keep the utf8 encoding, but give up the regex
-        #     description = re.sub(r"^\W+|\W+$", "", description).encode('utf8')
-        # except AttributeError:
-        #     description = "null"
-
-        output = {
-            "athlete-id": str(user_id),
-            "name": str(name),
-            "athlete-title": str(athlete_title),
-            "title-start-date": str(title_date),
-            "location": str(location),
-        }
+        athlete_title = profile_soup.find("div", {"class": "athlete-title"}).get_text()
+        athlete_title = re.sub(r"^\W+|\W+$", "", athlete_title).encode('utf8')
     except AttributeError:
-        error_flag = True
+        athlete_title = "null"
+
+    try:
+        title_date = name_h2['title']
+        title_date = re.sub(r"Member Since: ", "", title_date).encode('utf8')
+    except AttributeError:
+        title_date = "null"
+
+    try:
+        location = profile_soup.find("div", {"class": "location"}).get_text()
+        location = re.sub(r"^\W+|\W+$", "", location).encode('utf8')
+    except AttributeError:
+        location = "null"
+
+    try:
+        description = profile_soup.find("div", {"class": "description-content"}).get_text()
+        # May keep the utf8 encoding, but give up the regex
+        description = re.sub(r"^\W+|\W+$", "", description).encode('utf8')
+    except AttributeError:
+        description = "null"
+
+    output = {
+        "athlete-id": str(user_id),
+        "name": str(name),
+        "athlete-title": str(athlete_title),
+        "title-start-date": str(title_date),
+        "location": str(location),
+        "description": str(description)
+    }
 
     return output, error_flag
 
@@ -310,7 +308,13 @@ def write_data_to_file(data, filepath):
 
 def main():
     # Could set PhantomJS as the browswer:browser = webdriver.PhantomJS()
-    browser = webdriver.Firefox(executable_path='/usr/local/bin/geckodriver')
+
+    # for mac location
+    # browser = webdriver.Firefox(executable_path='/usr/local/bin/geckodriver') 
+
+    # for windows location
+    browser = webdriver.Firefox(executable_path=r"C:\Users\Aman\geckodriver.exe")
+
     browser.get('https://www.strava.com/login')
 
     username = browser.find_element_by_id("email")
@@ -326,17 +330,18 @@ def main():
     BASE_URL = "http://www.strava.com/athletes/"
 
     # # The id and size below is just for testing
-    start_athlete_id = 8
+    start_athlete_id = 4182387
     sample_size = 1
     user_ids = range(start_athlete_id, start_athlete_id + sample_size)
 
     #activity = pd.read_csv('activity.csv')
-    #user_ids = activity['athlete.id']
+    #user_ids = list(activity['athlete.id'])
 
     user_data = []
+    count = 1
 
     for user_id in user_ids:
-        print(user_id)
+        print(user_id, count)
         page = BASE_URL + str(user_id)
         soup = make_soup(page, browser)
         try:
@@ -378,7 +383,12 @@ def main():
 
         user_data.append(user_one)
 
-    write_data_to_file(user_data, "strava_scraped_data.json")
+        if count % 10 == 0:
+             write_data_to_file(user_data, "strava_scraped_data.json")
+             
+        count = count + 1
+    
+     write_data_to_file(user_data, "strava_scraped_data.json")
 
 
 if __name__ == '__main__':
