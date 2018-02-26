@@ -321,13 +321,11 @@ def write_data_to_file(data, filepath):
 
 def main():
     # Could set PhantomJS as the browswer:browser = webdriver.PhantomJS()
-    #
     # # for mac location
     browser = webdriver.Firefox(executable_path='/usr/local/bin/geckodriver')
     #
     # # for windows location
     # # browser = webdriver.Firefox(executable_path=r"C:\Users\Aman\geckodriver.exe")
-    #
     browser.get('https://www.strava.com/login')
 
     username = browser.find_element_by_id("email")
@@ -337,7 +335,6 @@ def main():
     password.send_keys("Kumar2150")
     login_attempt = browser.find_element_by_xpath("//*[@type='submit']")
     login_attempt.submit()
-
     br = mechanize.Browser()
     cj = cookielib.LWPCookieJar()
     br.set_cookiejar(cj)
@@ -373,7 +370,6 @@ def main():
 
     activity = pd.read_csv('activity.csv')
     user_ids = list(activity['athlete.id'])
-
     user_data = []
     count = 1
 
